@@ -1,4 +1,3 @@
-// src/components/ButtonIndex.tsx
 import { Link } from "react-router-dom";
 
 interface ButtonIndexProps {
@@ -7,11 +6,15 @@ interface ButtonIndexProps {
   color?: string;
 }
 
-const ButtonIndex = ({ to, label, color = "bg-blue-600 hover:bg-blue-700" }: ButtonIndexProps) => {
+const ButtonIndex = ({
+  to,
+  label,
+  color = "bg-blue-600 hover:bg-blue-700",
+}: ButtonIndexProps) => {
   return (
     <Link
       to={to}
-      className={`${color} text-white px-6 py-3 rounded-lg shadow transition`}
+      className={`${color} text-white w-64 text-center py-3 rounded-lg shadow transition`}
     >
       {label}
     </Link>
