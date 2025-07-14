@@ -4,13 +4,18 @@ type Player = {
   id: number;
   name: string;
   avatar?: string;
+  isDealer?: boolean;
+  isSmallBlind?: boolean;
+  isBigBlind?: boolean;
 };
 
 type Props = {
-  onAddPlayer: (name: string) => void;
+  onAddPlayer: (player: { id: number; name: string; avatar?: string }) => void;
+  tablePlayers: Player[];
+  onSetDealer: (id: number) => void;
 };
 
-export const PokerTable = ({ onAddPlayer }: Props) => {
+export const PokerTable = ({ onAddPlayer, tablePlayers, onSetDealer }: Props) => {
   const [players, setPlayers] = useState<(Player | null)[]>(Array(8).fill(null));
   const [selectedSeat, setSelectedSeat] = useState<number | null>(null);
   const [name, setName] = useState("");
@@ -43,8 +48,8 @@ export const PokerTable = ({ onAddPlayer }: Props) => {
       updated[selectedSeat] = newPlayer;
       setPlayers(updated);
 
-      // ✅ Notificar al componente padre
-      onAddPlayer(newPlayer.name);
+      // Notificar al componente padre
+      onAddPlayer(newPlayer);
 
       dialogRef.current?.close();
     }
@@ -69,37 +74,58 @@ export const PokerTable = ({ onAddPlayer }: Props) => {
           alt="poker-table"
           className="absolute inset-0 w-full h-full object-contain rotate-90"
         />
-        {players.map((player, index) => (
+        {tablePlayers.map((player, index) => (
           <div
-            key={index}
+            key={player.id}
             className={`absolute ${seatPositions[index]} flex flex-col items-center`}
           >
-            {player ? (
-              <div className="flex flex-col items-center">
-                {player.avatar && (
-                  <img
-                    src={player.avatar}
-                    className="w-10 h-10 rounded-full border mb-1 object-cover"
-                    alt="avatar"
-                  />
-                )}
-                <span className="bg-white text-black px-2 py-1 rounded-full text-xs font-semibold shadow whitespace-nowrap">
-                  {player.name}
-                </span>
-              </div>
+            {player.avatar && (
+              <img
+                src={player.avatar}
+                className="w-10 h-10 rounded-full border mb-1 object-cover"
+                alt="avatar"
+              />
+            )}
+            <span className="bg-white text-black px-2 py-1 rounded-full text-xs font-semibold shadow whitespace-nowrap mb-1">
+              {player.name}
+            </span>
+
+            {/* Dealer button or label */}
+            {player.isDealer ? (
+              <div className="text-yellow-500 font-bold mb-1">Dealer</div>
             ) : (
+              <button
+                onClick={() => onSetDealer(player.id)}
+                className="text-xs px-2 py-1 rounded bg-yellow-300 text-black hover:opacity-80 transition"
+              >
+                Set Dealer
+              </button>
+            )}
+
+            {/* Aquí podés agregar Small Blind y Big Blind si querés */}
+          </div>
+        ))}
+
+        {/* Mostrar botones Add solo en los asientos vacíos */}
+        {Array.from({ length: 8 }).map((_, index) => {
+          if (tablePlayers[index]) return null;
+          return (
+            <div
+              key={`empty-${index}`}
+              className={`absolute ${seatPositions[index]} flex flex-col items-center`}
+            >
               <button
                 onClick={() => handleOpenDialog(index)}
                 className="text-xs px-2 py-1 rounded-full bg-[var(--first-color)] text-black hover:opacity-80 transition"
               >
                 Add
               </button>
-            )}
-          </div>
-        ))}
+            </div>
+          );
+        })}
       </div>
 
-      {/* Diálogo */}
+      {/* Diálogo para agregar jugador */}
       <dialog
         ref={dialogRef}
         className="bg-[var(--second-color)] text-black rounded-md p-6 shadow-lg w-[90%] sm:w-[80%] md:w-[70%] lg:w-[50%] max-w-sm

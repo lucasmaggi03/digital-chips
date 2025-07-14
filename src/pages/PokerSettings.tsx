@@ -1,17 +1,42 @@
 import { useState } from "react";
 import { PokerTable } from "../components/PokerTable";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
-export const Poker = () => {
+export const PokerSettings = () => {
   const [chips, setChips] = useState("");
   const [level, setLevel] = useState(2);
   const [players, setPlayers] = useState([{ level: 1, big: 10, small: 5 }]);
-  const [tablePlayers, setTablePlayers] = useState<string[]>([]);
+  const [tablePlayers, setTablePlayers] = useState<
+    {
+      id: number;
+      name: string;
+      avatar?: string;
+      isDealer?: boolean;
+      isSmallBlind?: boolean;
+      isBigBlind?: boolean;
+    }[]
+  >([]);
 
-  const handleAddPlayer = (name: string) => {
-    if (name.trim()) {
-      setTablePlayers((prev) => [...prev, name.trim()]);
-    }
+  const navigate = useNavigate();
+
+  const handleAddPlayer = (player: {
+    id: number;
+    name: string;
+    avatar?: string;
+  }) => {
+    setTablePlayers((prev) => [
+      ...prev,
+      { ...player, isDealer: false, isSmallBlind: false, isBigBlind: false },
+    ]);
+  };
+
+  const handleSetDealer = (id: number) => {
+    setTablePlayers(prev =>
+      prev.map(p => ({
+        ...p,
+        isDealer: p.id === id,
+      }))
+    );
   };
 
   const handleChipsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,6 +68,20 @@ export const Poker = () => {
     const updated = [...players];
     updated.splice(index, 1);
     setPlayers(updated);
+  };
+
+  const handleStartGame = () => {
+    if (tablePlayers.length >= 2 && chips) {
+      navigate("/pokergame", {
+        state: {
+          players: tablePlayers,
+          blindStructure: players,
+          startingChips: Number(chips),
+        },
+      });
+    } else {
+      alert("Please add at least 2 players and set starting chips.");
+    }
   };
 
   return (
@@ -144,21 +183,25 @@ export const Poker = () => {
             </tbody>
           </table>
 
-          {/* PokerTable recibe la función para agregar jugador */}
+          {/* PokerTable recibe la función para agregar jugador, los jugadores y asignar dealer */}
           <div className="my-0 py-0">
-            <PokerTable onAddPlayer={handleAddPlayer} />
+            <PokerTable
+              onAddPlayer={handleAddPlayer}
+              tablePlayers={tablePlayers}
+              onSetDealer={handleSetDealer}
+            />
           </div>
         </div>
       </div>
 
-      {/* Play button */}
+      {/* Botón para iniciar juego */}
       <div className="flex justify-center">
-        <Link
-          to=""
+        <button
+          onClick={handleStartGame}
           className="bg-[var(--first-color)] text-black font-bold py-2 px-6 rounded hover:bg-opacity-90 transition mb-20"
         >
           Play
-        </Link>
+        </button>
       </div>
     </div>
   );
